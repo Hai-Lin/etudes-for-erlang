@@ -14,7 +14,18 @@ is_leap_year(Year) ->
 	(Year rem 4 == 0 andalso Year rem 100 /= 0)
 	orelse (Year rem 400 == 0).
 
-data_parts
+get_month_days(Year) ->
+	case is_leap_year(Year) of
+		false -> [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+		true -> [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+	end.
+
+
+get_month_days_test() ->
+	[?_assert(get_month_days(2000) =:= [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]),
+		?_assert(get_month_days(2001) =:= [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
+	].
+
 
 data_parts_test() ->
 	[?_assert(data_parts("1982-06-29") =:= [1982,06,29]),
