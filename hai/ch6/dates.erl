@@ -14,6 +14,8 @@ is_leap_year(Year) ->
 	(Year rem 4 == 0 andalso Year rem 100 /= 0)
 	orelse (Year rem 400 == 0).
 
+data_parts
+
 data_parts_test() ->
 	[?_assert(data_parts("1982-06-29") =:= [1982,06,29]),
 		?_assert(data_parts("1998-07-29") =:= [1998,07,29])
