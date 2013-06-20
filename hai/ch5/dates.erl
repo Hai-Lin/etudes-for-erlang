@@ -10,7 +10,7 @@ data_parts(Date) ->
 		element(1,string:to_integer(Month)),
 		element(1,string:to_integer(Day))].
 
-data_parts_test() ->
-	[?_assert(data_parts("1982-06-29") =:= [1983,06,29]),
+data_parts_test_() ->
+	[?_assert(data_parts("1982-06-29") =:= [1982,06,29]),
 		?_assert(data_parts("1998-07-29") =:= [1998,07,29])
 	].
