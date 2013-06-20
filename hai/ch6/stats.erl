@@ -1,6 +1,6 @@
 
 -module(stats).
--export([minimum/1, range/1, maximum/1]).
+-export([minimum/1, range/1, maximum/1, minimum_test/0]).
 -include_lib("eunit/include/eunit.hrl").
 
 range(Numbers) -> [ minimum(Numbers), maximum(Numbers) ].
