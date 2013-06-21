@@ -78,14 +78,14 @@ char_to_shape(Char)  ->
 	end.
 
 
-get_number_test() ->
-	[?_assert(get_number("5.5") =:= 5.5),
-		?_assert(get_number("5") =:= 5),
-		?_assert(get_number("0") =:= 0),
-		?_assert(get_number("-1") =:= -1)
+string_to_number_test_() ->
+	[?_assert(string_to_number("5.5") =:= 5.5),
+		?_assert(string_to_number("5") =:= 5),
+		?_assert(string_to_number("0") =:= 0),
+		?_assert(string_to_number("-1") =:= -1)
 	].
 
-char_to_shape_test() ->
+char_to_shape_test_() ->
 	[?_assert(char_to_shape("T") =:= triangle),
 		?_assert(char_to_shape("t") =:= triangle),
 		?_assert(char_to_shape("R") =:= rectangle),
