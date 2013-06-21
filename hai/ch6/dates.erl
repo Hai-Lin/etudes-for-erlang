@@ -23,12 +23,21 @@ julian(DateString) ->
 	[Year, Month, Day] = date_parts(DateString),
 	julian(Year, Month, Day, get_month_days(Year), 0).
 
-julian(Year, Month, Day, DayList, Acc) when Month == 0 ->
+julian(_, Month, Day, _, Acc) when Month == 1 ->
 	Acc + Day;
 
 julian(Year, Month, Day, [H | T], Acc) ->
 	%io:format(Year, Month - 1, Day, T, Acc + H),
 	julian(Year, Month - 1, Day, T, Acc + H). 
+
+julian_test_() ->
+	[?_assert(julian("2012-12-31") =:= 366),
+		?_assert(julian("2013-12-31") =:= 365),
+		?_assert(julian("2012-02-05") =:= 36),
+		?_assert(julian("1900-03-01") =:= 60),
+		?_assert(julian("2000-03-01") =:= 61),
+		?_assert(julian("2013-01-01") =:= 1)
+	].
 
 get_month_days_test_() ->
 	[?_assert(get_month_days(2000) =:= [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]),
