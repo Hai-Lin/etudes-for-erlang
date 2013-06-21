@@ -2,7 +2,7 @@
 %% @doc Functions for calculating areas of geometric shapes.
 
 -module(geom).
--export([ask_area/0, get_number/1]).
+-export([ask_area/0, get_number/1, get_shape/1]).
 -include_lib("eunit/include/eunit.hrl").
 
 %% @doc Calculates the area of a shape, given the name of the shape

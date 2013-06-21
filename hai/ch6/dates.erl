@@ -30,19 +30,19 @@ julian(Year, Month, Day, [H | T], Acc) ->
 	%io:format(Year, Month - 1, Day, T, Acc + H),
 	julian(Year, Month - 1, Day, T, Acc + H). 
 
-get_month_days_test() ->
+get_month_days_test_() ->
 	[?_assert(get_month_days(2000) =:= [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]),
 		?_assert(get_month_days(2001) =:= [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
 	].
 
 
-date_parts_test() ->
+date_parts_test_() ->
 	[?_assert(date_parts("1982-06-29") =:= [1982,06,29]),
 		?_assert(date_parts("1998-07-29") =:= [1998,07,29]),
 		?_assert(date_parts("2012-12-31") =:= [2012,12,31])
 	].
 
-is_leap_year_test() ->
+is_leap_year_test_() ->
 	[?_assert(is_leap_year(2000) =:= true), 
 		?_assert(is_leap_year(2004) =:= true), 
 		?_assert(is_leap_year(2005) =:= false)
