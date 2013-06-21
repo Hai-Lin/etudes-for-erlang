@@ -27,7 +27,6 @@ julian(_, Month, Day, _, Acc) when Month == 1 ->
 	Acc + Day;
 
 julian(Year, Month, Day, [H | T], Acc) ->
-	%io:format(Year, Month - 1, Day, T, Acc + H),
 	julian(Year, Month - 1, Day, T, Acc + H). 
 
 julian_test_() ->
