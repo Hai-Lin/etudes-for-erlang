@@ -43,7 +43,7 @@ generate_random_number() ->
 	random:seed(now()),
 	random:uniform().
 
-%% Below are functions copied from suggested sulution
+%% Below are functions copied from suggested solution
 
 t_teeth() ->
 	TList = "FTTTTTTTTTTTTTTFTTTTTTTTTTTTTTTT",
