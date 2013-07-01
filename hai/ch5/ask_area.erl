@@ -19,17 +19,17 @@ get_area(Shape) ->
 
 get_shape()  ->
   Char = io:get_chars("R)ectangle, T)riangle, or E)llipse > ", 1),
-  io:get_line(Char), %% Without this line, the enter will buffer to next io:get_line.
+  io:get_line("Skipping new line"), %% Without this line, the enter(new line) will buffer to next io:get_*, and skip the io:get_*(here it keep skipping the first get_number("*").
   char_to_shape(hd(Char)).
 
 get_number(Prompt) ->
-  P =	"Enter " ++ Prompt ++ " > ",
-  Result = io:get_line(P),
+  PromptString = "Enter " ++ Prompt ++ " > ",
+  Result = io:get_line(PromptString),
   string_to_number(Result).
 
 string_to_number(String) ->
   Number = string:to_float(String),
-  case Number of 
+  case Number of
     {error,_} -> element(1, string:to_integer(String));
     _ -> element(1, Number)
   end.
@@ -37,20 +37,20 @@ string_to_number(String) ->
 get_dimensions(Shape) when Shape =:= triangle ->
   Dimension1 = get_number("width"),
   Dimension2 = get_number("height"),
-  {Dimension1, Dimension2}; 
+  {Dimension1, Dimension2};
 
 get_dimensions(Shape) when Shape =:= rectangle ->
   Dimension1 = get_number("base"),
   Dimension2 = get_number("height"),
-  {Dimension1, Dimension2}; 
+  {Dimension1, Dimension2};
 
 get_dimensions(Shape) when Shape =:= ellipse ->
   Dimension1 = get_number("axis"),
   Dimension2 = get_number("axis"),
-  {Dimension1, Dimension2}; 
+  {Dimension1, Dimension2};
 
 get_dimensions(Shape) when Shape =:= unknown ->
-  io:format("Unknown shape").		
+  io:format("Unknown shape").	
 
 char_to_shape(Char)  ->
   case Char of
