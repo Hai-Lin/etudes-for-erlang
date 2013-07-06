@@ -5,9 +5,9 @@
 dealer({init, _, _, _, _, _}) ->
   io:format("Dealers init game~n"),
   io:format("Init player1~n"),
-  Player1 = spawn(game, player, [[1,2,0,1]]),
+  Player1 = spawn(game, player, [[1,2,0,1, 1]]),
   io:format("Init player2~n"),
-  Player2 = spawn(game, player, [[1,4,3,2]]),
+  Player2 = spawn(game, player, [[1,4,3,2, 2]]),
   dealer({pre_battle, [Player1, Player2],[], [], [], 0});
 
 dealer({pre_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds}) when NumberOfResponds =< 1->
@@ -30,34 +30,45 @@ dealer({await_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfRespond
   io:format("Await Battle~n"),
   receive
     {ok, PlayerPid, Cards} ->
-      NewPiles = lists:append(Piles, Cards),
       case PlayerPid of
         Player1 ->
           io:format("Receive cards from player1~n"),
           case NumberOfResponds of
             0 ->
               io:format("Call dealer await_battle for player2~n"),
-              dealer({await_battle, [Player1, Player2], NewPiles, Cards, Piles2, NumberOfResponds + 1});
+              dealer({await_battle, [Player1, Player2], Piles ++ Cards, Cards, Piles2, NumberOfResponds + 1});
             1 ->
               io:format("Call dealer check_cards~n"),
-              dealer({check_cards, [Player1, Player2], NewPiles, Cards, Piles2, NumberOfResponds + 1})
+              dealer({check_cards, [Player1, Player2], Piles ++ Cards, Cards, Piles2, NumberOfResponds + 1});
+            2 ->
+              io:format("Call dealer await_battle(WAR) for player2~n"),
+              dealer({await_battle, [Player1, Player2], Piles ++ Cards, Piles1 ++ Cards, Piles2, NumberOfResponds + 1});
+            3 ->
+              io:format("Call dealer check_cards for WAR~n"),
+              dealer({check_cards, [Player1, Player2], Piles ++ Cards, Piles1 ++ Cards, Piles2, NumberOfResponds + 1})
           end;
         Player2 ->
           io:format("Receive cards from player2~n"),
           case NumberOfResponds of
             0 ->
               io:format("Call dealer await_battle for player1~n"),
-              dealer({await_battle, [Player1, Player2], NewPiles, Piles1, Cards, NumberOfResponds + 1});
+              dealer({await_battle, [Player1, Player2], Piles ++ Cards, Piles1, Cards, NumberOfResponds + 1});
             1 ->
               io:format("Call dealer check_cards~n"),
-              dealer({check_cards, [Player1, Player2], NewPiles, Piles1, Cards, NumberOfResponds + 1})
+              dealer({check_cards, [Player1, Player2], Piles ++ Cards, Piles1, Cards, NumberOfResponds + 1});
+            2 ->
+              io:format("Call dealer await_battle(WAR) for player1~n"),
+              dealer({await_battle, [Player1, Player2], Piles ++ Cards, Piles1, Piles2 ++ Cards, NumberOfResponds + 1});
+            3 ->
+              io:format("Call dealer check_cards for WAR~n"),
+              dealer({check_cards, [Player1, Player2], Piles ++ Cards, Piles1, Piles2 ++ Cards, NumberOfResponds + 1})
           end
       end;
     {lose, PlayerPid} ->
       io:format("Player ~p is lose, game over ~n", [PlayerPid])
   end;
 
-dealer({check_cards, [Player1, Player2], Piles, Piles1, Piles2, _}) ->
+dealer({check_cards, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds}) ->
   CompareResult = compare(Piles1, Piles2),
   case CompareResult of
     bigger ->
@@ -67,7 +78,7 @@ dealer({check_cards, [Player1, Player2], Piles, Piles1, Piles2, _}) ->
       Player2 ! {give_cards, Piles},
       dealer({pre_battle, [Player1,Player2], [], [], [], 0});
     equal ->
-      dealer({pre_battle, [Player1,Player2], Piles, [], [], 0})
+      dealer({pre_battle, [Player1,Player2], Piles, Piles1, Piles2, NumberOfResponds})
   end;
 
 dealer(_) ->
@@ -90,13 +101,17 @@ player(Cards) ->
   end.
 
 compare(Piles1, Piles2) ->
+  io:format("Now compare ~p with ~p ~n", [Piles1, Piles2]),
   LastOfPiles1 = lists:last(Piles1),
   LastOfPiles2 = lists:last(Piles2),
   if LastOfPiles1 == LastOfPiles2 ->
+      io:format("~p equals to ~p ~n", [Piles1, Piles2]),
       equal;
     LastOfPiles1 > LastOfPiles2 ->
+      io:format("~p is bigger than  ~p ~n", [Piles1, Piles2]),
       bigger;
     LastOfPiles1 < LastOfPiles2 ->
+      io:format("~p is smaller than  ~p ~n", [Piles1, Piles2]),
       smaller
   end.
 
