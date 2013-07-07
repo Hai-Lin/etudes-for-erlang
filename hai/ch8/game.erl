@@ -1,13 +1,12 @@
 -module(game).
 -export([player/1, dealer/1]).
 
-
 dealer({init, _, _, _, _, _}) ->
   io:format("Dealers init game~n"),
   io:format("Init player1~n"),
-  Player1 = spawn(game, player, [[1,2,0,1, 1]]),
+  Player1 = spawn(game, player, [cards:make_deck()]),
   io:format("Init player2~n"),
-  Player2 = spawn(game, player, [[1,4,3,2, 2]]),
+  Player2 = spawn(game, player, [cards:make_deck()]),
   dealer({pre_battle, [Player1, Player2],[], [], [], 0});
 
 dealer({pre_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds}) when NumberOfResponds =< 1->
@@ -64,8 +63,15 @@ dealer({await_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfRespond
               dealer({check_cards, [Player1, Player2], Piles ++ Cards, Piles1, Piles2 ++ Cards, NumberOfResponds + 1})
           end
       end;
-    {lose, PlayerPid} ->
-      io:format("Player ~p is lose, game over ~n", [PlayerPid])
+    {no_card, PlayerPid} ->
+      if
+        PlayerPid =:= Player1 ->
+          io:format("Player ~p has no card left, waiting for player ~p~n", [Player1, Player2]),
+          dealer({last_round});
+        true ->
+          io:format("Player ~p has no card left, waiting for player ~p~n", [Player2, Player1]),
+          dealer({last_round})
+      end
   end;
 
 dealer({check_cards, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds}) ->
@@ -73,16 +79,24 @@ dealer({check_cards, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds
   case CompareResult of
     bigger ->
       Player1 ! {give_cards, Piles},
-      dealer({pre_battle, [Player1,Player2], [], [], [], 0});
+      dealer({pre_battle, [Player1, Player2], [], [], [], 0});
     smaller ->
       Player2 ! {give_cards, Piles},
-      dealer({pre_battle, [Player1,Player2], [], [], [], 0});
+      dealer({pre_battle, [Player1, Player2], [], [], [], 0});
     equal ->
-      dealer({pre_battle, [Player1,Player2], Piles, Piles1, Piles2, NumberOfResponds})
+      dealer({pre_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds})
+  end;
+
+dealer({last_round}) ->
+  receive
+    {ok, PlayerPid, _} ->
+      io:format("Player ~p win, game over.~n", [PlayerPid]);
+    {no_cards, _} ->
+      io:format("Game endding in a draw.~n")
   end;
 
 dealer(_) ->
-  io:format("Ending...~n").
+  io:format("Error, existting...~n").
 
 player(Cards) ->
   receive
@@ -93,8 +107,8 @@ player(Cards) ->
           io:format("Player ~p start with cards: ~p~n", [self(), LeftCards]),
           player(LeftCards);
         true ->
-          io:format("I lose ~n"),
-          From ! {lose, self()}
+          io:format("Player ~p have no card left ~n", [self()]),
+          From ! {no_card, self()}
       end;
     {give_cards, GivenCards} ->
       player(Cards ++ GivenCards)
@@ -104,14 +118,21 @@ compare(Piles1, Piles2) ->
   io:format("Now compare ~p with ~p ~n", [Piles1, Piles2]),
   LastOfPiles1 = lists:last(Piles1),
   LastOfPiles2 = lists:last(Piles2),
-  if LastOfPiles1 == LastOfPiles2 ->
+  {Value1, _} = LastOfPiles1,
+  {Value2, _} = LastOfPiles2,
+  if Value1 == Value2 ->
       io:format("~p equals to ~p ~n", [Piles1, Piles2]),
       equal;
-    LastOfPiles1 > LastOfPiles2 ->
+    Value1 =:= "A" ->
       io:format("~p is bigger than  ~p ~n", [Piles1, Piles2]),
       bigger;
-    LastOfPiles1 < LastOfPiles2 ->
+    Value2 =:= "A" ->
+      io:format("~p is smaller than  ~p ~n", [Piles1, Piles2]),
+      smaller;
+    Value1 > Value2 ->
+      io:format("~p is bigger than  ~p ~n", [Piles1, Piles2]),
+      bigger;
+    Value1 < Value2 ->
       io:format("~p is smaller than  ~p ~n", [Piles1, Piles2]),
       smaller
   end.
-
