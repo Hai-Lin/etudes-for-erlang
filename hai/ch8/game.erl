@@ -2,27 +2,31 @@
 -export([player/1, dealer/1]).
 -include_lib("eunit/include/eunit.hrl").
 
-dealer({init, _, _, _, _, _}) ->
+dealer({init, NumberOfCards}) ->
   io:format("Dealers init game~n"),
+  Cards = cards:make_deck(),
+  Cards1 = lists:sublist(Cards, NumberOfCards),
+  Cards2 = lists:sublist(Cards, NumberOfCards + 1, NumberOfCards),
   io:format("Init player1~n"),
-  Player1 = spawn(game, player, [cards:make_deck()]),
+  Player1 = spawn(game, player, [Cards1]),
+  io:format("Player ~p start with cards: ~p~n", [Player1, Cards1]),
   io:format("Init player2~n"),
-  Player2 = spawn(game, player, [cards:make_deck()]),
+  Player2 = spawn(game, player, [Cards2]),
+  io:format("Player ~p start with cards: ~p~n", [Player2, Cards2]),
   dealer({pre_battle, [Player1, Player2],[], [], [], 0});
 
 dealer({pre_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds}) when NumberOfResponds =< 1->
-  io:format("PreBattle start with players: ~p~n",[[Player1, Player2]]),
-  io:format("Ask player1 ~p for cards~n", [Player1]),
+  io:format("Ask player1 ~p for 1 cards~n", [Player1]),
   Player1 ! {self(),ask_for_cards, 1},
-  io:format("Ask player2 ~p for cards~n", [Player2]),
+  io:format("Ask player2 ~p for 1 cards~n", [Player2]),
   Player2 ! {self(),ask_for_cards, 1},
   dealer({await_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds});
 
 dealer({pre_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds}) ->
-  io:format("War start with players: ~p~n",[[Player1, Player2]]),
-  io:format("Ask player1 ~p for cards~n", [Player1]),
+  io:format("War start ~n"),
+  io:format("Ask player1 ~p for 3 cards~n", [Player1]),
   Player1 ! {self(),ask_for_cards, 3},
-  io:format("Ask player2 ~p for cards~n", [Player2]),
+  io:format("Ask player2 ~p for 3 cards~n", [Player2]),
   Player2 ! {self(),ask_for_cards, 3},
   dealer({await_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds});
 
@@ -101,7 +105,8 @@ dealer(_) ->
 
 player(Cards) ->
   receive
-    {From, ask_for_cards,NumbersOfCards} ->
+    {From, ask_for_cards, NumbersOfCards} ->
+      io:format("Player ~p got request for ~p of cards ~n", [self(), NumbersOfCards]),
       if length(Cards) >= NumbersOfCards ->
           {GiveAwayCards, LeftCards} = lists:split(NumbersOfCards, Cards),
           From ! {ok, self(), GiveAwayCards},

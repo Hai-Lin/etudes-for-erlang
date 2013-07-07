@@ -1,6 +1,6 @@
 
 -module(start).
--export([start_game/0]).
+-export([start_game/1]).
 
-start_game() ->
-  spawn(game, dealer, [{init, [], [], [], [],[]}]).
+start_game(NumberOfCards) ->
+  spawn(game, dealer, [{init, NumberOfCards}]).
