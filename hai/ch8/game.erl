@@ -7,12 +7,8 @@ dealer({init, NumberOfCards}) ->
   Cards = cards:make_deck(),
   Cards1 = lists:sublist(Cards, NumberOfCards),
   Cards2 = lists:sublist(Cards, NumberOfCards + 1, NumberOfCards),
-  io:format("Init player1~n"),
-  Player1 = spawn(game, player, [Cards1]),
-  io:format("Player ~p start with cards: ~p~n", [Player1, Cards1]),
-  io:format("Init player2~n"),
-  Player2 = spawn(game, player, [Cards2]),
-  io:format("Player ~p start with cards: ~p~n", [Player2, Cards2]),
+  Player1 = spawn_player(Cards1),
+  Player2 = spawn_player(Cards2),
   dealer({pre_battle, [Player1, Player2],[], [], [], 0});
 
 dealer({pre_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds}) when NumberOfResponds =< 1->
@@ -80,7 +76,7 @@ dealer({await_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfRespond
   end;
 
 dealer({check_cards, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds}) ->
-  CompareResult = compare(Piles1, Piles2),
+  CompareResult = cards:compare(Piles1, Piles2),
   case CompareResult of
     bigger ->
       Player1 ! {give_cards, Piles},
@@ -102,6 +98,13 @@ dealer({last_round}) ->
 
 dealer(_) ->
   io:format("Error, existting...~n").
+
+spawn_player(Cards) ->
+  io:format("Init player1~n"),
+  Player = spawn(game, player, [Cards]),
+  io:format("Player ~p start with cards: ~p~n", [Player, Cards]),
+  Player.
+
 
 player(Cards) ->
   receive
