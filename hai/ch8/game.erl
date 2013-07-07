@@ -11,23 +11,16 @@ dealer({init, NumberOfCards}) ->
   Player2 = spawn_player(Cards2),
   dealer({pre_battle, [Player1, Player2],[], [], [], 0});
 
-dealer({pre_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds}) when NumberOfResponds =< 1->
-  io:format("Ask player1 ~p for 1 cards~n", [Player1]),
-  Player1 ! {self(),ask_for_cards, 1},
-  io:format("Ask player2 ~p for 1 cards~n", [Player2]),
-  Player2 ! {self(),ask_for_cards, 1},
-  dealer({await_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds});
+dealer({pre_battle, Players, Piles, Piles1, Piles2, NumberOfResponds}) when NumberOfResponds =< 1->
+  ask_for_cards(Players, 1),
+  dealer({await_battle, Players, Piles, Piles1, Piles2, NumberOfResponds});
 
-dealer({pre_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds}) ->
+dealer({pre_battle, Players, Piles, Piles1, Piles2, NumberOfResponds}) ->
   io:format("War start ~n"),
-  io:format("Ask player1 ~p for 3 cards~n", [Player1]),
-  Player1 ! {self(),ask_for_cards, 3},
-  io:format("Ask player2 ~p for 3 cards~n", [Player2]),
-  Player2 ! {self(),ask_for_cards, 3},
-  dealer({await_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds});
+  ask_for_cards(Players, 3),
+  dealer({await_battle, Players, Piles, Piles1, Piles2, NumberOfResponds});
 
 dealer({await_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds}) ->
-  io:format("Await Battle~n"),
   receive
     {ok, PlayerPid, Cards} ->
       case PlayerPid of
@@ -105,6 +98,11 @@ spawn_player(Cards) ->
   io:format("Player ~p start with cards: ~p~n", [Player, Cards]),
   Player.
 
+ask_for_cards([Player1, Player2], NumberOfCards) ->
+  io:format("Ask player1 ~p for 1 cards~n", [Player1]),
+  Player1 ! {self(),ask_for_cards, NumberOfCards},
+  io:format("Ask player2 ~p for 1 cards~n", [Player2]),
+  Player2 ! {self(),ask_for_cards, NumberOfCards}.
 
 player(Cards) ->
   receive
