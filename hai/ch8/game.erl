@@ -1,5 +1,6 @@
 -module(game).
 -export([player/1, dealer/1]).
+-include_lib("eunit/include/eunit.hrl").
 
 dealer({init, _, _, _, _, _}) ->
   io:format("Dealers init game~n"),
@@ -136,3 +137,14 @@ compare(Piles1, Piles2) ->
       io:format("~p is smaller than  ~p ~n", [Piles1, Piles2]),
       smaller
   end.
+
+compare_test_() ->
+  [?_assert(compare([{7,"Clubs"},{9,"Diamonds"}],
+                    [{10,"Diamonds"},{10,"Clubs"}]) =:= smaller),
+   ?_assert(compare([{7,"Clubs"},{"Q","Diamonds"}],
+                    [{10,"Diamonds"},{10,"Clubs"}]) =:= bigger),
+   ?_assert(compare([{7,"Clubs"},{"Q","Diamonds"}],
+                    [{10,"Diamonds"},{"Q","Clubs"}]) =:= equal),
+   ?_assert(compare([{7,"Clubs"},{"Q","Diamonds"}],
+                    [{10,"Diamonds"},{"A","Clubs"}]) =:= smaller)
+  ].
