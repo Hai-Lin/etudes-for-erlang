@@ -25,14 +25,7 @@ dealer({await_battle, [Player1, Player2], Piles, Piles1, Piles2, NumberOfRespond
     {ok, PlayerPid, Cards} ->
       await_battle_receive_cards_helper({PlayerPid, Cards, Player1, Player2, Piles, Piles1, Piles2, NumberOfResponds});
     {no_card, PlayerPid} ->
-      if
-        PlayerPid =:= Player1 ->
-          io:format("Player ~p has no card left, waiting for player ~p~n", [Player1, Player2]),
-          dealer({last_round});
-        true ->
-          io:format("Player ~p has no card left, waiting for player ~p~n", [Player2, Player1]),
-          dealer({last_round})
-      end
+      await_battle_no_card_helper({PlayerPid, Player1, Player2, NumberOfResponds})
   end;
 
 dealer({check_cards, [Player1, Player2], Piles, Piles1, Piles2, NumberOfResponds}) ->
@@ -80,7 +73,7 @@ await_battle_receive_cards_helper({PlayerPid, Cards, Player1, Player2, Piles, Pi
       NewPiles1 = Piles1 ++ Cards,
       NewPiles2 = Piles2;
     Player2 ->
-      io:format("Dealer feceive cards ~p from player ~p~n", [Cards, Player2]),
+      io:format("Dealer receive cards ~p from player ~p~n", [Cards, Player2]),
       NewPiles1 = Piles1,
       NewPiles2 = Piles2 ++ Cards
   end,
@@ -90,10 +83,34 @@ await_battle_receive_cards_helper({PlayerPid, Cards, Player1, Player2, Piles, Pi
       dealer({check_cards, [Player1, Player2], NewPiles, NewPiles1, NewPiles2, NumberOfResponds + 1})
   end.
 
+await_battle_no_card_helper({PlayerPid, Player1, Player2, NumberOfResponds}) ->
+  if NumberOfResponds rem 2 =:= 0 ->
+      last_round_start({PlayerPid, Player1, Player2});
+    true ->
+      player_win({PlayerPid, Player1, Player2})
+  end.
+
+last_round_start({PlayerPid, Player1, Player2}) ->
+  case PlayerPid of
+    Player1 ->
+      io:format("Player ~p has no card left, waiting for player ~p~n", [Player1, Player2]);
+    Player2 ->
+      io:format("Player ~p has no card left, waiting for player ~p~n", [Player2, Player1])
+  end,
+  dealer({last_round}).
+
+player_win({PlayerPid, Player1, Player2}) ->
+  case PlayerPid of
+    Player1 ->
+      io:format("Player ~p win, game over.~n", [Player2]);
+    Player2 ->
+      io:format("Player ~p win, game over.~n", [Player1])
+  end.
+
 player(Cards) ->
   receive
     {From, ask_for_cards, NumbersOfCards} ->
-      io:format("Player ~p got request for ~p of cards ~n", [self(), NumbersOfCards]),
+      io:format("Player ~p got request for ~p cards ~n", [self(), NumbersOfCards]),
       if length(Cards) >= NumbersOfCards ->
           {GiveAwayCards, LeftCards} = lists:split(NumbersOfCards, Cards),
           From ! {ok, self(), GiveAwayCards},
@@ -104,6 +121,8 @@ player(Cards) ->
           From ! {no_card, self()}
       end;
     {give_cards, GivenCards} ->
+      io:format("Player ~p got cards ~p from dealer ~n", [self(), GivenCards]),
+      io:format("Player ~p start with cards: ~p~n", [self(), Cards ++ GivenCards]),
       player(Cards ++ GivenCards)
   end.
 
