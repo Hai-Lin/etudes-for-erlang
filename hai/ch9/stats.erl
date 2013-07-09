@@ -5,8 +5,11 @@
 
 range(Numbers) -> [ minimum(Numbers), maximum(Numbers) ].
 
-maximum([]) -> false;
-maximum([H | T]) -> maximum([H | T], H).
+maximum(NumberList) ->
+  try maximum(NumberList, hd(NumberList))
+  catch
+    error:Error -> {error, Error}
+  end.
 
 maximum([], Max) -> Max;
 
@@ -15,8 +18,11 @@ maximum([H | T], Max) ->
     true -> maximum(T, Max)
   end.
 
-minimum([]) -> false;
-minimum([H | T]) -> minimum(T, H).
+minimum(NumberList) ->
+  try minimum(NumberList, hd(NumberList))
+  catch
+    error:Error -> {error, Error}
+  end.
 
 minimum([], Minimum) -> Minimum;
 
@@ -26,8 +32,12 @@ minimum([H | T], Minimum) ->
   end.
 
 mean(NumberList) ->
+  try
   Sum = lists:foldl(fun sum/2, 0, NumberList),
-  Sum / length(NumberList).
+  Sum / length(NumberList)
+  catch
+    error:Error -> {error, Error}
+  end.
 
 sum(Value, Accumulator) ->
   Value + Accumulator.
