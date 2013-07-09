@@ -33,8 +33,8 @@ minimum([H | T], Minimum) ->
 
 mean(NumberList) ->
   try
-  Sum = lists:foldl(fun sum/2, 0, NumberList),
-  Sum / length(NumberList)
+    Sum = lists:foldl(fun sum/2, 0, NumberList),
+    Sum / length(NumberList)
   catch
     error:Error -> {error, Error}
   end.
@@ -47,9 +47,13 @@ sum_and_square_sum(NumberList) ->
   lists:foldl(SumAndSquareSum, [0, 0], NumberList).
 
 stdv(NumberList) ->
-  [Sum, SquareSum] = sum_and_square_sum(NumberList),
-  Length = length(NumberList),
-  math:sqrt((Length * SquareSum - Sum * Sum) / (Length * (Length - 1))).
+  try
+    [Sum, SquareSum] = sum_and_square_sum(NumberList),
+    Length = length(NumberList),
+    math:sqrt((Length * SquareSum - Sum * Sum) / (Length * (Length - 1)))
+  catch
+    error:Error -> {error, Error}
+  end.
 
 
 minimum_test_() ->
