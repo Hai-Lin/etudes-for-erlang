@@ -23,7 +23,7 @@ julian(DateString) ->
   [Year, Month, Day] = date_parts(DateString),
   julian(Year, Month, Day, get_month_days(Year), 0).
 
-julian(_, Month, Day, _, Acc) when Month == 1 ->
+julian(_, 1, Day, _, Acc) ->
   Acc + Day;
 
 julian(Year, Month, Day, [H | T], Acc) ->
