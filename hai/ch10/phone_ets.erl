@@ -1,11 +1,12 @@
 
 -module(phone_ets).
--export([setup/1, calculate_time_list/0]).
+-export([setup/1]).
 -include("phone_records.hrl").
 
 setup(File) ->
   init_table(),
-  setup_ets_table(file:open(File, [read])).
+  setup_ets_table(file:open(File, [read])),
+  calculate_time_list().
 
 init_table() ->
   case ets:info(phone_calls) of
@@ -19,9 +20,7 @@ setup_ets_table({_, File}) ->
   if Line /= eof ->
       write_ets(Line),
       setup_ets_table({ok, File});
-    true ->
-      io:format("Done importing table~n"),
-      ets:info(phone_calls)
+    true -> false
   end.
 
 write_ets(Line) ->
@@ -32,7 +31,10 @@ calculate_time_list() ->
   [{PhoneNumber, calculate_time({StartDate, StartTime}, {EndDate, EndTime})} ||  {_, PhoneNumber, StartDate, StartTime, EndDate, EndTime} <- ets:tab2list(phone_calls)].
 
 calculate_time(StartTime, EndTime) ->
-  calculate_seconds(EndTime) - calculate_seconds(StartTime).
+  seconds_to_minutes(calculate_seconds(EndTime) - calculate_seconds(StartTime)).
+
+seconds_to_minutes(Seconds) ->
+  (Seconds + 59) div 60.
 
 calculate_seconds({Date, Time}) ->
   calendar:datetime_to_gregorian_seconds({parse_date(Date), parse_time(Time)}).
@@ -44,7 +46,7 @@ parse_time(Time) ->
 parse_date(Date) ->
   [Year, Month, Day] = re:split(Date, "-", [{return,list}]),
   {string_to_number(Year), string_to_number(Month), string_to_number(Day)}.
-  
+
 string_to_number(String) ->
   Number = string:to_float(String),
   case Number of
