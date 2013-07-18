@@ -1,6 +1,6 @@
 
 -module(phone_ets).
--export([setup/1, summary/0]).
+-export([setup/1, summary/0, summary/1]).
 -include("phone_records.hrl").
 
 setup(File) ->
@@ -54,6 +54,10 @@ write_to_call_minutes_table({PhoneNumber, Minutes}) ->
 
 summary() ->
   [{PhoneNumber, Minutes} ||  {_, PhoneNumber, Minutes} <- ets:tab2list(call_minutes)].
+
+summary(PhoneNumber) ->
+  {_, _, Minutes} = hd(ets:lookup(call_minutes, PhoneNumber)),
+  {PhoneNumber, Minutes}.
 
 write_phone_calls_table(Line) ->
   [PhoneNumber, StartDate, StartTime, EndDate, EndTime] = re:split(re:replace(Line, "\\s+", "", [global]),",",[{return,list}]),
