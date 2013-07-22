@@ -1,2 +1,3 @@
 -record(phone_call, {phone_number, start_date, start_time, end_date, end_time}).
 -record(call_minute, {phone_number, minutes}).
+-record(customer,{phone_number, last_name, first_name, middle_name, rate}).
