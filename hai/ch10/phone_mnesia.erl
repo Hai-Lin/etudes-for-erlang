@@ -1,2 +1,0 @@
--module(phone_mesia).
--export([setup/2]).

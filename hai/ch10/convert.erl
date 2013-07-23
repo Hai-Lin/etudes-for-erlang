@@ -1,5 +1,5 @@
 -module(convert).
--export([calculate_time/2, string_to_time/1, string_to_date/1]).
+-export([calculate_time/2, string_to_time/1, string_to_date/1, string_to_number/1]).
 
 
 calculate_time(StartTime, EndTime) ->
