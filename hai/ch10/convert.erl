@@ -1,12 +1,18 @@
 -module(convert).
--export([calculate_time/2, string_to_time/1, string_to_date/1, string_to_number/1]).
+-export([calculate_time/2, string_to_time/1, string_to_date/1, string_to_number/1, calculate_number_time/2]).
 
 
 calculate_time(StartTime, EndTime) ->
   seconds_to_minutes(calculate_seconds(EndTime) - calculate_seconds(StartTime)).
 
+calculate_number_time(StartTime,EndTime) ->
+  seconds_to_minutes(calculate_number_seconds(EndTime) - calculate_number_seconds(StartTime)).
+
 seconds_to_minutes(Seconds) ->
   (Seconds + 59) div 60.
+
+calculate_number_seconds({Date,Time}) ->
+  calendar:datetime_to_gregorian_seconds({Date, Time}).
 
 calculate_seconds({Date, Time}) ->
   calendar:datetime_to_gregorian_seconds({string_to_date(Date), string_to_time(Time)}).
