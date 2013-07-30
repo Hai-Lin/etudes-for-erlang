@@ -1,8 +1,8 @@
 
--module(weather).
+-module(weather_sup).
 -behaviour(supervisor).
 -export([start_link/0]).
--export([init/1, handle_call/3]).
+-export([init/1]).
 -define(SERVER, ?MODULE).
 -include_lib("xmerl/include/xmerl.hrl").
 
@@ -20,15 +20,4 @@ init([]) ->
   Type = worker,
   Weather = {weather, {weather, start_link, []}, Restart, Shutdown, Type, [weather]},
   {ok, {SupFlags, [Weather]}}.
-
-handle_call(_Request, _From, State) ->
-  case State =/= [] of
-    true ->
-      io:format("Most recent requests: ~p~n", [State]);
-    false ->
-      {reply, {ok, handle_request(_Request)}, State ++ _Request}
-  end.
-
-handle_request(StationCode) ->
-
 
