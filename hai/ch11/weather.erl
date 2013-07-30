@@ -16,14 +16,14 @@ init([]) ->
 
 handle_call(_Request, _From, State) ->
   {Result,Data} = handle_request(_Request),
-  {reply, {Result, Data}, State ++ _Request}.
+  {reply, {Result, Data}, [_Request | State]}.
 
 handle_cast(_Message, State) ->
-  io:format("Most recent requests: ~p~n", [State]),
-  {nonreply, State}.
+  io:format("Most recent requests: ~p~n", [lists:reverse(State)]),
+  {noreply, State}.
 
 handle_info(_Info, State) ->
-  {nonreply, State}.
+  {noreply, State}.
 
 terminate(_Reason, _State) ->
   ok.
