@@ -2,7 +2,7 @@
 -module(weather).
 -behaviour(supervisor).
 -export([start_link/0]).
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3, report/1, recent/0]).
 -define(SERVER, ?MODULE).
 -include_lib("xmerl/include/xmerl.hrl").
 
@@ -79,3 +79,9 @@ extract_text(Content) ->
     xmlText -> Item#xmlText.value;
     _ -> ""
   end.
+
+report(Station) ->
+  gen_server:call(?SERVER, Station).
+
+recent() ->
+  gen_server:cast(?SERVER, "").
