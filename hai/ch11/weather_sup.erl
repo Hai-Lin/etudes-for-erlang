@@ -8,7 +8,7 @@
 
 
 start_link() ->
-  supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+  supervisor:start_link({global, ?SERVER}, ?MODULE, []).
 
 init([]) ->
   RestartStrategy = one_for_one,

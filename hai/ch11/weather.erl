@@ -2,21 +2,21 @@
 -module(weather).
 -behaviour(supervisor).
 -export([start_link/0]).
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3, report/1, recent/0]).
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3, report/1, recent/0, connect/1]).
 -define(SERVER, ?MODULE).
 -include_lib("xmerl/include/xmerl.hrl").
 
 
 start_link() ->
-  gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+  gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
 
 init([]) ->
   inets:start(),
   {ok, []}.
 
 handle_call(_Request, _From, State) ->
-  {Result,Data} = handle_request(_Request),
-  {reply, {Result, Data}, [_Request | State]}.
+  Result = handle_request(_Request),
+  {reply, Result, [_Request | State]}.
 
 handle_cast(_Message, State) ->
   io:format("Most recent requests: ~p~n", [lists:reverse(State)]),
@@ -81,7 +81,17 @@ extract_text(Content) ->
   end.
 
 report(Station) ->
-  gen_server:call(?SERVER, Station).
+  gen_server:call({global, weather}, Station).
 
 recent() ->
-  gen_server:cast(?SERVER, "").
+  gen_server:cast({global, weather}, "").
+
+connect(NodeName) ->
+  Result = net_adm:ping(NodeName),
+  case Result of
+    ping ->
+      io:format("Successfully connect server ~p~n", [NodeName]);
+    pang ->
+      io:format("Fail to connect server ~p~n", [NodeName])
+  end.
+
