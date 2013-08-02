@@ -1,6 +1,6 @@
 
 -module(chatroom).
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3, report/1]).
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 -define(SERVER, ?MODULE).
 
 init([]) ->
@@ -16,6 +16,10 @@ handle_call(logout, {Pid, _Tag}, State) ->
 
 handle_call({say, Text}, {Pid, _Tag}, State) ->
   {Reply, NewState} = handle_say(Pid, State, Text),
+  {reply, Reply, NewState};
+
+handle_call(users, {_, _Tag}, State) ->
+  {Reply, NewState} = handle_users(State),
   {reply, Reply, NewState}.
 
 handle_cast(_Message, State) ->
@@ -64,6 +68,9 @@ find_user_and_server(Pid, State) ->
 populate_text(FromUser, FromServer, State, Text) ->
   [gen_server:cast(Pid, {message, {FromUser, FromServer}, Text}) || {{User, Server}, Pid}  <- State, Server =:= FromServer, User /= FromUser].
 
+handle_users(State) ->
+  Users = [{User, Server} || {{User, Server}, _} <- State ],
+  {{ok, Users}, State}.
 
 
 
