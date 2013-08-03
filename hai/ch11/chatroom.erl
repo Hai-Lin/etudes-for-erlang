@@ -18,6 +18,10 @@ handle_call({say, Text}, {Pid, _Tag}, State) ->
   {Reply, NewState} = handle_say(Pid, State, Text),
   {reply, Reply, NewState};
 
+handle_call({who, Person, ServerName}, _From, State) ->
+  {Reply, NewState} = handle_get_profile(Person, ServerName, State),
+  {reply, Reply, NewState}.
+
 handle_call(users, {_, _Tag}, State) ->
   {Reply, NewState} = handle_users(State),
   {reply, Reply, NewState}.
@@ -72,5 +76,12 @@ handle_users(State) ->
   Users = [{User, Server} || {{User, Server}, _} <- State ],
   {{ok, Users}, State}.
 
+handle_get_profile(Person, Server, State) ->
+  Pid = find_pid(Person, Server, State),
+  Reply = gen_server:call(Pid, get_profile),
+  {Reply, State}.
 
+find_pid(Person, Server, State) ->
+  {{Person, Server}, Pid} = lists:keysearch({Person, Server}, 1, State),
+  Pid.
 
