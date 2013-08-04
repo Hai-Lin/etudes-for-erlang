@@ -1,13 +1,17 @@
 
 -module(chatroom).
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+-export([start_link/0, init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 -define(SERVER, ?MODULE).
+
+
+start_link() ->
+  gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 init([]) ->
   {ok, []}.
 
-handle_call({login, UserName, ServerName}, {Pid, _Tag}, State) -> 
-  {Reply, NewState} = handle_login(UserName, ServerName, Pid, State),
+handle_call({login, UserName, ServerNode}, {Pid, _Tag}, State) -> 
+  {Reply, NewState} = handle_login(UserName, ServerNode, Pid, State),
   {reply, Reply, NewState};
 
 handle_call(logout, {Pid, _Tag}, State) ->
@@ -18,9 +22,9 @@ handle_call({say, Text}, {Pid, _Tag}, State) ->
   {Reply, NewState} = handle_say(Pid, State, Text),
   {reply, Reply, NewState};
 
-handle_call({who, Person, ServerName}, _From, State) ->
-  {Reply, NewState} = handle_get_profile(Person, ServerName, State),
-  {reply, Reply, NewState}.
+handle_call({who, Person, ServerNode}, _From, State) ->
+  {Reply, NewState} = handle_get_profile(Person, ServerNode, State),
+  {reply, Reply, NewState};
 
 handle_call(users, {_, _Tag}, State) ->
   {Reply, NewState} = handle_users(State),
@@ -38,12 +42,15 @@ terminate(_Reason, _State) ->
 code_change(_OldVersion, State, _Extra) ->
   {ok, State}.
 
-handle_login(UserName, ServerName, {Pid, _Tag}, State) ->
-  case lists:keymember({UserName, ServerName}, 1, State) of
+handle_login(UserName, ServerNode, Pid, State) ->
+  io:format("User ~p in ~p try to login~n", [UserName, ServerNode]),
+  case lists:keymember({UserName, ServerNode}, 1, State) of
     true ->
-      {{error, "User " ++ UserName ++ " is already in " ++ ServerName}, State};
+      io:format("User ~p in ~p~p succefully login",[UserName, ServerNode, Pid]),
+      {{error, "User " ++ UserName ++ " is already in " ++ atom_to_list(ServerNode)}, State};
     false ->
-      {{ok, "User " ++ UserName ++ " successfully log in " ++ ServerName}, [{{UserName, ServerName}, Pid} | State]}
+      io:format("User ~p cannot login because he is already login with ~p~p~p",[UserName, UserName, ServerNode, Pid]),
+      {{ok, "User " ++ UserName ++ " successfully log in " ++ atom_to_list(ServerNode)}, [{{UserName, ServerNode}, Pid} | State]}
   end.
 
 handle_logout(Pid, State) ->
@@ -73,7 +80,7 @@ populate_text(FromUser, FromServer, State, Text) ->
   [gen_server:cast(Pid, {message, {FromUser, FromServer}, Text}) || {{User, Server}, Pid}  <- State, Server =:= FromServer, User /= FromUser].
 
 handle_users(State) ->
-  Users = [{User, Server} || {{User, Server}, _} <- State ],
+  Users = [{User, Server, Pid} || {{User, Server}, Pid} <- State ],
   {{ok, Users}, State}.
 
 handle_get_profile(Person, Server, State) ->
