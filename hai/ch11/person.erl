@@ -45,13 +45,14 @@ handle_call(get_user, _From, State) ->
   {reply, {ok, State#state.user_name}, State};
 
 handle_call({login, UserName}, _From, State) ->
-  {Reply, NewState} = handle_login(UserName, State),
+  Reply = gen_server:call({chatroom, State#state.chat_node}, {login, UserName, node()}),
+  NewState = #state{chat_node = State#state.chat_node, user_name = UserName, profile = State#state.profile},
   {reply, Reply, NewState};
 
 handle_call({set_profile, Key, Value}, _From, State) ->
   NewProfile = set_profile(Key, Value, State#state.profile),
   NewState = #state{chat_node = State#state.chat_node, user_name = State#state.user_name, profile = NewProfile},
-  {reply, {ok, "Set " ++ parse_atom(Key) ++ " to " ++ Value}, NewState}.
+  {reply, {ok, "Set " ++ atom_to_list(Key) ++ " to " ++ Value}, NewState}.
 
 set_profile(Key, Value, Profile) ->
   case lists:keymember(Key, 1, Profile) of
@@ -62,10 +63,8 @@ set_profile(Key, Value, Profile) ->
   end.
 
 handle_login(UserName, State) ->
-  io:format("User ~p login server ~p~n", [UserName, State#state.chat_node]),
   Reply = gen_server:call({chatroom, State#state.chat_node}, {login, UserName, node()}),
   NewState = #state{chat_node = State#state.chat_node, user_name = UserName, profile = State#state.profile},
-  io:format("reply: ~p NewState: ~p~n",[Reply, NewState]),
   {Reply, NewState}.
 
 get_chat_node() ->

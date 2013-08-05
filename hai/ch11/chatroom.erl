@@ -11,6 +11,7 @@ init([]) ->
   {ok, []}.
 
 handle_call({login, UserName, ServerNode}, {Pid, _Tag}, State) -> 
+  io:format("Sign in ~p~n", [Pid]),
   {Reply, NewState} = handle_login(UserName, ServerNode, Pid, State),
   {reply, Reply, NewState};
 
@@ -19,6 +20,7 @@ handle_call(logout, {Pid, _Tag}, State) ->
   {reply, Reply, NewState};
 
 handle_call({say, Text}, {Pid, _Tag}, State) ->
+  io:format("User say ~p~n", [Pid]),
   {Reply, NewState} = handle_say(Pid, State, Text),
   {reply, Reply, NewState};
 
@@ -26,7 +28,8 @@ handle_call({who, Person, ServerNode}, _From, State) ->
   {Reply, NewState} = handle_get_profile(Person, ServerNode, State),
   {reply, Reply, NewState};
 
-handle_call(users, {_, _Tag}, State) ->
+handle_call(users, {Pid, _Tag}, State) ->
+  io:format("Users ~p~n", [Pid]),
   {Reply, NewState} = handle_users(State),
   {reply, Reply, NewState}.
 
@@ -42,14 +45,13 @@ terminate(_Reason, _State) ->
 code_change(_OldVersion, State, _Extra) ->
   {ok, State}.
 
-handle_login(UserName, ServerNode, Pid, State) ->
-  io:format("User ~p in ~p try to login~n", [UserName, ServerNode]),
+handle_login(UserName, ServerNode, Pid, State) -> io:format("User ~p in ~p try to login~n", [UserName, ServerNode]),
   case lists:keymember({UserName, ServerNode}, 1, State) of
     true ->
-      io:format("User ~p in ~p~p succefully login",[UserName, ServerNode, Pid]),
+      io:format("User ~p cannot login because he is already login with ~p~p~p~n",[UserName, UserName, ServerNode, Pid]),
       {{error, "User " ++ UserName ++ " is already in " ++ atom_to_list(ServerNode)}, State};
     false ->
-      io:format("User ~p cannot login because he is already login with ~p~p~p",[UserName, UserName, ServerNode, Pid]),
+      io:format("User ~p in ~p~p succefully login~n",[UserName, ServerNode, Pid]),
       {{ok, "User " ++ UserName ++ " successfully log in " ++ atom_to_list(ServerNode)}, [{{UserName, ServerNode}, Pid} | State]}
   end.
 
@@ -62,19 +64,16 @@ handle_logout(Pid, State) ->
   end.
 
 handle_say(Pid, State, Text) ->
-  ServerAndUser = find_user_and_server(Pid, State),
+  io:format("id ~p say ~p~n", [Pid, Text]),
+  ServerAndUser = lists:keysearch(Pid, 2, State),
   case ServerAndUser of
     false ->
-      {{error, "User " ++ Pid ++ " not exist"}, State};
+      {{error, "User not exist"}, State};
     _ ->
-      {value, {User, Server}} = ServerAndUser,
+      {value, {{User, Server}, _}} = ServerAndUser,
       populate_text(User, Server, State, Text),
       {{ok, "Successfully populate text"}, State}
   end.
-
-find_user_and_server(Pid, State) ->
-  {{User, Server}, _} = lists:keysearch(Pid, 2, State),
-  {User, Server}.
 
 populate_text(FromUser, FromServer, State, Text) ->
   [gen_server:cast(Pid, {message, {FromUser, FromServer}, Text}) || {{User, Server}, Pid}  <- State, Server =:= FromServer, User /= FromUser].
