@@ -45,9 +45,12 @@ handle_call(get_user, _From, State) ->
   {reply, {ok, State#state.user_name}, State};
 
 handle_call({login, UserName}, _From, State) ->
-  Reply = gen_server:call({chatroom, State#state.chat_node}, {login, UserName, node()}),
-  NewState = #state{chat_node = State#state.chat_node, user_name = UserName, profile = State#state.profile},
+  {Reply, NewState} = handle_login(UserName, State),
   {reply, Reply, NewState};
+
+handle_call({say, Text}, _From, State) ->
+  Reply = gen_server:call({chatroom, State#state.chat_node}, {say, Text}),
+  {reply, Reply, State};
 
 handle_call({set_profile, Key, Value}, _From, State) ->
   NewProfile = set_profile(Key, Value, State#state.profile),
@@ -94,7 +97,9 @@ logout() ->
   gen_server:call({chatroom, get_chat_node()}, logout).
 
 say(Text) ->
-  gen_server:call({chatroom, get_chat_node()}, {say, Text}).
+  %% This is going to change the Pid and not working correctly
+  %% gen_server:call({chatroom, get_chat_node()}, {say, Text})
+  gen_server:call(?CLIENT, {say, Text}).
 
 users() ->
   gen_server:call({chatroom, get_chat_node()}, users).
