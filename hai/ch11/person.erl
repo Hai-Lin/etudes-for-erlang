@@ -23,7 +23,8 @@ init(Server) ->
   io:format("Person start in server ~p~n", [Server]),
   {ok, #state{chat_node = Server, user_name = [], profile = []}}.
 
-handle_cast(_Message, State) ->
+handle_cast({message, {FromUser, FromServer}, Text}, State) ->
+  io:format("~s (~p) says: ~p~n", [FromUser, FromServer, Text]),
   {noreply, State}.
 
 handle_info(_Info, State) ->
@@ -97,8 +98,8 @@ logout() ->
   gen_server:call({chatroom, get_chat_node()}, logout).
 
 say(Text) ->
-  %% This is going to change the Pid and not working correctly
   %% gen_server:call({chatroom, get_chat_node()}, {say, Text})
+  %% This will change the Pid and not working correctly
   gen_server:call(?CLIENT, {say, Text}).
 
 users() ->
