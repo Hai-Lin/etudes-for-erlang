@@ -76,18 +76,13 @@ handle_say(Pid, State, Text) ->
   end.
 
 populate_text(FromUser, FromServer, State, Text) ->
-  [gen_server:cast(Pid, {message, {FromUser, FromServer}, Text}) || {{User, Server}, Pid}  <- State, Server =:= FromServer, User /= FromUser].
+  [gen_server:cast({person, Server}, {message, {FromUser, FromServer}, Text}) || {{User, Server}, _}  <- State, {User, Server} /= {FromUser, FromServer}].
 
 handle_users(State) ->
   Users = [{User, Server, Pid} || {{User, Server}, Pid} <- State ],
   {{ok, Users}, State}.
 
-handle_get_profile(Person, Server, State) ->
-  Pid = find_pid(Person, Server, State),
-  Reply = gen_server:call(Pid, get_profile),
+handle_get_profile(_Person, Server, State) ->
+  Reply = gen_server:call({person, Server}, get_profile),
   {Reply, State}.
-
-find_pid(Person, Server, State) ->
-  {{Person, Server}, Pid} = lists:keysearch({Person, Server}, 1, State),
-  Pid.
 
